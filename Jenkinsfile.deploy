@@ -1,0 +1,37 @@
+pipeline {
+
+  agent any
+
+  parameters {
+    string(name: 'DEPLOY_HOST', defaultValue: '', description: 'Adresse IP ou DNS de la VM cible')
+    string(name: 'DEPLOY_USER', defaultValue: 'deployer', description: 'Utilisateur SSH pour le déploiement')
+  }
+
+  stages {
+    stage('Deploy Backend') {
+      steps {
+        script {
+          sshagent(['deploy-ssh-credential-id']) {
+            sh """
+              ssh -o StrictHostKeyChecking=no ${params.DEPLOY_USER}@${params.DEPLOY_HOST} '
+                docker pull dvnpn/efrei-pipeline-api:latest && \
+                docker stop efrei-pipeline-api || true && \
+                docker rm efrei-pipeline-api || true && \
+                docker run -d --name efrei-pipeline-api -p 3001:3001 dvnpn/efrei-pipeline-api:latest
+              '
+            """
+          }
+        }
+      }
+    }
+  }
+
+  post {
+    success {
+      echo 'Déploiement backend terminé avec succès.'
+    }
+    failure {
+      echo 'Échec du déploiement backend.'
+    }
+  }
+}
