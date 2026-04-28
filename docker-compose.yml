@@ -1,0 +1,21 @@
+services:
+  api:
+    image: dvnpn/efrei-pipeline-api:latest
+    container_name: efrei-pipeline-api
+    ports:
+      - "3001:3001"
+    environment:
+      - DATABASE_URL=postgres://user:password@db:5432/dbname
+    depends_on:
+      - db
+  db:
+    image: postgres:15
+    container_name: efrei-pipeline-db
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=dbname
+    volumes:
+      - db_data:/var/lib/postgresql/data
+volumes:
+  db_data:
